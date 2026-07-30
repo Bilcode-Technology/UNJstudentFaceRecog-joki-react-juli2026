@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\FaceEncodingException;
+use App\Exceptions\GeofenceException;
 use App\Models\Attendance;
 use App\Models\ClassSession;
 use App\Models\User;
@@ -20,21 +21,24 @@ class AttendanceService
     protected AttendanceRepository $attendanceRepo;
     protected ClassSessionRepository $sessionRepo;
     protected FaceRecognitionService $faceService;
+    protected GeofenceService $geofenceService;
 
     public function __construct(
         AttendanceRepository $attendanceRepo,
         ClassSessionRepository $sessionRepo,
-        FaceRecognitionService $faceService
+        FaceRecognitionService $faceService,
+        GeofenceService $geofenceService
     ) {
         $this->attendanceRepo = $attendanceRepo;
         $this->sessionRepo = $sessionRepo;
         $this->faceService = $faceService;
+        $this->geofenceService = $geofenceService;
     }
 
     /**
      * Mahasiswa check-in via 1:1 face verification and raw lat/lng logging.
      *
-     * @throws FaceEncodingException|InvalidArgumentException|AuthorizationException
+     * @throws FaceEncodingException|GeofenceException|InvalidArgumentException|AuthorizationException
      */
     public function checkIn(User $student, int $sessionId, string $base64Image, float $latitude, float $longitude): Attendance
     {
@@ -69,7 +73,14 @@ class AttendanceService
             throw new InvalidArgumentException("Sesi sudah berakhir");
         }
 
-        // 4. Retrieve student face encoding
+        // 4. Geofence Radius Validation (OFFLINE SESSION ONLY — BLOCKING)
+        if ($session->meeting_type === 'offline') {
+            if (!$this->geofenceService->isWithinRadius($latitude, $longitude, $session)) {
+                throw new GeofenceException("Anda berada di luar radius lokasi kelas.", "out_of_radius", 422);
+            }
+        }
+
+        // 5. Retrieve student face encoding
         $faceEncodingRecord = $student->faceEncoding;
         if (!$faceEncodingRecord || empty($faceEncodingRecord->encoding)) {
             throw new FaceEncodingException("Presensi gagal, silakan coba lagi.", "no_encoding", 422);

@@ -322,14 +322,34 @@ export default function MahasiswaAttendancePage(props: { params: Promise<{ id: s
 
                 {/* Error Banner inside camera section */}
                 {error && (
-                  <div className="bg-red-50 text-unj-red p-3.5 rounded-xl text-xs font-semibold border border-unj-red/20 text-center space-y-2">
-                    <p>{error}</p>
-                    {error.includes('gagal') && (
-                      <Button variant="danger" size="default" onClick={startCamera} className="text-xs px-4 py-1.5 mt-1">
-                        Coba Lagi
+                  error.toLowerCase().includes('radius') || error.toLowerCase().includes('lokasi') ? (
+                    <div className="bg-amber-50 text-amber-900 p-4 rounded-xl text-xs font-semibold border border-amber-300 text-center space-y-2 shadow-sm">
+                      <div className="flex items-center justify-center gap-1.5 text-amber-800 font-bold text-sm">
+                        <span>📍</span>
+                        <span>Lokasi Di Luar Radius Geofencing</span>
+                      </div>
+                      <p className="text-amber-800">{error}</p>
+                      <p className="text-[11px] text-amber-700 font-normal">
+                        Pastikan Anda berada di sekitar gedung kelas/kampus dan izin lokasi browser aktif, atau hubungi KORMAT untuk override manual.
+                      </p>
+                      <Button variant="ghost" size="default" onClick={requestLocation} className="text-xs text-amber-900 hover:bg-amber-100 font-semibold px-3 py-1 mt-1">
+                        🔄 Refresh Lokasi GPS
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="bg-red-50 text-unj-red p-3.5 rounded-xl text-xs font-semibold border border-unj-red/20 text-center space-y-2">
+                      <div className="flex items-center justify-center gap-1.5 font-bold text-sm">
+                        <span>📸</span>
+                        <span>Kendala Presensi Wajah</span>
+                      </div>
+                      <p>{error}</p>
+                      {error.includes('gagal') && (
+                        <Button variant="danger" size="default" onClick={startCamera} className="text-xs px-4 py-1.5 mt-1">
+                          Coba Lagi
+                        </Button>
+                      )}
+                    </div>
+                  )
                 )}
 
                 {/* Camera Action Buttons */}

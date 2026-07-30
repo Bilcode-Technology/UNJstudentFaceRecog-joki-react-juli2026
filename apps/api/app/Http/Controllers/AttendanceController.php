@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\FaceEncodingException;
+use App\Exceptions\GeofenceException;
 use App\Services\AttendanceService;
 use App\Traits\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -47,9 +48,12 @@ class AttendanceController extends Controller
         } catch (FaceEncodingException $e) {
             // Strictly returns generic message for check-in face failures per Rule #8
             return $this->errorResponse($e->getMessage(), $e->getCode() ?: 422);
+        } catch (GeofenceException $e) {
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 422);
         } catch (\InvalidArgumentException $e) {
             return $this->errorResponse($e->getMessage(), 422);
-        } catch (ModelNotFoundException $e) {
+        }
+ catch (ModelNotFoundException $e) {
             return $this->errorResponse($e->getMessage(), 404);
         } catch (AuthorizationException $e) {
             return $this->errorResponse($e->getMessage(), 403);
