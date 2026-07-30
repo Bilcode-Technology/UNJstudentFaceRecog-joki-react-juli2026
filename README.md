@@ -2,52 +2,104 @@
 
 Sistem presensi kuliah berbasis face recognition (server-side) dan geofencing (logging only).
 
-## Structure Monorepo
+## Struktur Monorepo
 
-- `apps/web`: Next.js App Router (PWA, Tailwind CSS) - Frontend & Client Dashboard.
-- `apps/api`: Laravel 11 - REST API, Authentication (Sanctum), Database (MySQL), Business Logic, & RBAC.
-- `apps/face-service`: Python FastAPI - Internal Microservice khusus Face Recognition (dijalankan di port 8001).
+- `apps/web`: Next.js App Router (PWA, Tailwind CSS) - Frontend & Client Dashboard (Port 3000).
+- `apps/api`: Laravel 11 - REST API, Authentication (Sanctum), Database (MySQL), Business Logic, & RBAC (Port 8000).
+- `apps/face-service`: Python FastAPI - Internal Microservice khusus Face Recognition & Anti-Spoofing (Port 8001).
 - `docs/`: Dokumentasi aturan bisnis dan spesifikasi arsitektur.
 - `deployment/`: Configuration template untuk Nginx, Supervisor, dan Deployment Scripts.
 
-## Prerequisites
+---
+
+## Prerequisites (Prasyarat Sistem)
 
 - Node.js v20+ / v22+
 - PHP v8.2+ / v8.3+ & Composer
 - Python 3.10+
-- MySQL 8.0+
+- MySQL 8.0+ (Pastikan service MySQL berjalan)
 
-## Local Setup Quickstart
+---
 
-1. **Laravel API (`apps/api`)**
-   ```bash
-   cd apps/api
-   composer install
-   cp .env.example .env
-   php artisan key:generate
-   php artisan migrate:fresh --seed
-   php artisan serve --port=8000
-   ```
+## Local Setup Quickstart (Langkah-Langkah Setup)
 
-2. **Next.js Web (`apps/web`)**
-   ```bash
-   cd apps/web
-   npm install
-   cp .env.example .env.local
-   npm run dev
-   ```
+### 1. Python Face Service (`apps/face-service`)
+Microservice ini disarankan untuk dijalankan terlebih dahulu (port 8001):
+```bash
+cd apps/face-service
 
-3. **Face Service (`apps/face-service`)**
-   ```bash
-   cd apps/face-service
-   python -m venv venv
-   # Activate venv:
-   # Windows PowerShell: .\venv\Scripts\Activate.ps1
-   # Windows CMD: venv\Scripts\activate.bat
-   pip install -r requirements.txt
-   uvicorn app.main:app --port 8001 --reload
-   ```
+# Buat virtual environment
+python -m venv venv
 
-> **Catatan Setup Windows**:
-> - Library `dlib` / `face_recognition` membutuhkan Visual Studio C++ Build Tools dan CMake saat kompilasi dari source di Windows. Untuk pengembangan lokal tanpa Visual C++, aplikasi ini menyediakan **fallback otomatis** (`HAS_FACE_RECOGNITION = False`) sehingga FastAPI dan seluruh flow aplikasi (Next.js & Laravel) tetap dapat berjalan 100% tanpa error.
-> - Jika muncul `[WinError 10013]`, pastikan port 8001 tidak sedang digunakan oleh proses Python/uvicorn lain yang berjalan di background.
+# Aktivasi venv:
+# Windows PowerShell: .\venv\Scripts\Activate.ps1
+# Windows CMD: venv\Scripts\activate.bat
+# Linux/macOS: source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy environment file
+cp .env.example .env
+
+# Jalankan service
+uvicorn app.main:app --port 8001 --reload
+```
+
+### 2. Laravel API (`apps/api`)
+```bash
+cd apps/api
+
+# Install dependencies PHP
+composer install
+
+# Copy environment file & Generate Key
+cp .env.example .env
+php artisan key:generate
+
+# Pastikan database 'student_face_recog' sudah dibuat di MySQL,
+# lalu jalankan migrasi & seeder data awal:
+php artisan migrate:fresh --seed
+
+# Buat symbolic link storage (WAJIB agar foto presensi/wajah dapat diakses publik)
+php artisan storage:link
+
+# Jalankan server API (port 8000)
+php artisan serve --port=8000
+```
+
+### 3. Next.js Web Frontend (`apps/web`)
+```bash
+cd apps/web
+
+# Install dependencies Node.js
+npm install
+
+# Copy environment file
+cp .env.example .env.local
+
+# Jalankan server pengembang (port 3000)
+npm run dev
+```
+
+---
+
+## Akun Default Hasil Seeder (`php artisan db:seed`)
+
+Setelah seeder berhasil dijalankan, Anda dapat menggunakan akun berikut untuk menguji aplikasi:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| **Super Admin** | `admin@example.com` | `password123` |
+| **KORMAT A** | `kormata@example.com` | `password123` |
+| **KORMAT B** | `kormatb@example.com` | `password123` |
+| **Mahasiswa** | *Dapat mendaftar melalui menu Register di Web Frontend* |
+
+---
+
+## Catatan Setup & Troubleshooting
+
+- **Windows Build Tools (`dlib` / `face_recognition`)**:
+  Library `dlib` membutuhkan Visual Studio C++ Build Tools & CMake saat kompilasi dari source di Windows. Aplikasi ini menyediakan **fallback otomatis** (`HAS_FACE_RECOGNITION = False`) sehingga FastAPI dan seluruh flow aplikasi (Next.js & Laravel) tetap dapat berjalan 100% tanpa error di lingkungan pengembang lokal.
+- **Port Conflict (`[WinError 10013]`)**:
+  Jika muncul error ini saat menjalankan `face-service`, pastikan port 8001 tidak sedang digunakan oleh proses Python/uvicorn lain yang berjalan di background.
