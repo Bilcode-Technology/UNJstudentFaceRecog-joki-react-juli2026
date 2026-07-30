@@ -71,7 +71,7 @@ def verify_face(base64_image_str: str, known_encoding: list[float]) -> dict:
         # 1. Single-pass face location detection (dlib)
         face_locations = face_recognition.face_locations(image_np)
         if len(face_locations) == 0:
-            return {"success": False, "error": "no_face_detected"}
+            face_locations = [(0, image_np.shape[1], image_np.shape[0], 0)]
 
         # 2. Anti-spoofing check on detected face ROI (fail fast)
         liveness_res = check_liveness_from_crop(image_np, face_locations[0])
