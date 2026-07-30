@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-unj-teal: #00595C;
+  --color-unj-teal-dark: #00393B;
+  --color-unj-gold: #F5C518;
+  --color-unj-red: #C81E2E;
+  --color-canvas: #F7F6F3;
+  --color-ink: #1A1F1E;
+  --color-line: #E4E1DA;
+
+  --font-heading: var(--font-heading), sans-serif;
+  --font-body: var(--font-body), sans-serif;
+}
+
+body {
+  background-color: #F7F6F3;
+  color: #1A1F1E;
+  font-family: var(--font-body), sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), sans-serif;
+}

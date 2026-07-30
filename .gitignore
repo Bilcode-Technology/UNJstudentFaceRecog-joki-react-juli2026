@@ -1,0 +1,47 @@
+# IDE / System
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Root environment
+.env
+
+# Next.js (apps/web)
+apps/web/node_modules/
+apps/web/.next/
+apps/web/out/
+apps/web/build/
+apps/web/.env
+apps/web/.env.local
+apps/web/.env.development.local
+apps/web/.env.test.local
+apps/web/.env.production.local
+apps/web/npm-debug.log*
+apps/web/yarn-debug.log*
+apps/web/yarn-error.log*
+
+# Laravel (apps/api)
+apps/api/vendor/
+apps/api/.env
+apps/api/.env.backup
+apps/api/.phpunit.result.cache
+apps/api/storage/*.key
+apps/api/storage/logs/*.log
+apps/api/storage/framework/cache/data/*
+apps/api/storage/framework/sessions/*
+apps/api/storage/framework/testing/*
+apps/api/storage/framework/views/*
+apps/api/bootstrap/cache/*.php
+
+# Python / FastAPI (apps/face-service)
+apps/face-service/__pycache__/
+apps/face-service/*/__pycache__/
+apps/face-service/*/*/__pycache__/
+apps/face-service/*/*/*/__pycache__/
+apps/face-service/.env
+apps/face-service/venv/
+apps/face-service/.venv/
+apps/face-service/*.pyc
