@@ -78,6 +78,15 @@ class AttendanceService
         // 5. Verify face via Python microservice
         $verifyResult = $this->faceService->verify($base64Image, $faceEncodingRecord->encoding);
 
+        if (!empty($verifyResult['error']) && $verifyResult['error'] === 'spoof_detected') {
+            \Illuminate\Support\Facades\Log::warning("Anti-spoofing trigger: Terdeteksi indikasi foto/layar HP saat check-in", [
+                'user_id' => $student->id,
+                'session_id' => $sessionId,
+                'score' => $verifyResult['score'] ?? null,
+            ]);
+            throw new FaceEncodingException("Presensi gagal, silakan coba lagi.", "spoof_detected", 422);
+        }
+
         if (empty($verifyResult['success']) || empty($verifyResult['match'])) {
             throw new FaceEncodingException("Presensi gagal, silakan coba lagi.", "verification_failed", 422);
         }

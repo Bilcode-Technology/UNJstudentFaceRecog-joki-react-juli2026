@@ -4,6 +4,7 @@ import os
 import face_recognition
 import numpy as np
 from PIL import Image
+from app.services.antispoof import check_liveness_from_crop
 
 
 def encode_face(base64_image_str: str) -> dict:
@@ -47,6 +48,7 @@ def encode_face(base64_image_str: str) -> dict:
 def verify_face(base64_image_str: str, known_encoding: list[float]) -> dict:
     """
     Performs 1:1 face verification comparing candidate image against registered known_encoding vector.
+    First runs single-pass face location detection, then anti-spoofing check, then face matching.
     Threshold defaults to 0.6 (configurable via FACE_MATCH_THRESHOLD env).
     """
     threshold = float(os.getenv("FACE_MATCH_THRESHOLD", 0.6))
@@ -66,10 +68,21 @@ def verify_face(base64_image_str: str, known_encoding: list[float]) -> dict:
         return {"success": False, "error": "invalid_image"}
 
     try:
+        # 1. Single-pass face location detection (dlib)
         face_locations = face_recognition.face_locations(image_np)
         if len(face_locations) == 0:
             return {"success": False, "error": "no_face_detected"}
 
+        # 2. Anti-spoofing check on detected face ROI (fail fast)
+        liveness_res = check_liveness_from_crop(image_np, face_locations[0])
+        if not liveness_res.get("is_live", True):
+            return {
+                "success": False,
+                "error": "spoof_detected",
+                "score": liveness_res.get("score", 0.0)
+            }
+
+        # 3. Extract encoding using exact same detected face_locations & calculate distance
         encodings = face_recognition.face_encodings(image_np, face_locations)
         if len(encodings) == 0:
             return {"success": False, "error": "no_face_detected"}
@@ -82,7 +95,8 @@ def verify_face(base64_image_str: str, known_encoding: list[float]) -> dict:
         return {
             "success": True,
             "match": is_match,
-            "distance": dist
+            "distance": dist,
+            "liveness_score": liveness_res.get("score", 1.0)
         }
-    except Exception:
+    except Exception as e:
         return {"success": False, "error": "invalid_image"}
