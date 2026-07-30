@@ -100,6 +100,4 @@ Setelah seeder berhasil dijalankan, Anda dapat menggunakan akun berikut untuk me
 ## Catatan Setup & Troubleshooting
 
 - **Windows Build Tools (`dlib` / `face_recognition`)**:
-  Library `dlib` membutuhkan Visual Studio C++ Build Tools & CMake saat kompilasi dari source di Windows. Aplikasi ini menyediakan **fallback otomatis** (`HAS_FACE_RECOGNITION = False`) sehingga FastAPI dan seluruh flow aplikasi (Next.js & Laravel) tetap dapat berjalan 100% tanpa error di lingkungan pengembang lokal.
-- **Port Conflict (`[WinError 10013]`)**:
-  Jika muncul error ini saat menjalankan `face-service`, pastikan port 8001 tidak sedang digunakan oleh proses Python/uvicorn lain yang berjalan di background.
+  Library `dlib` membutuhkan Visual Studio C++ Build Tools & CMake saat kompilasi dari source di Windows.
