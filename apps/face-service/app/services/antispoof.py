@@ -169,9 +169,10 @@ def check_liveness_from_crop(image_np: np.ndarray, face_location: Tuple[int, int
             "score": round(real_score, 4)
         }
     except Exception as e:
-        print(f"[AntiSpoof] Error during liveness check: {e}")
-        # Fail-safe default
+        print(f"[AntiSpoof ERROR] Critical exception during liveness check: {e}")
+        # Fail-closed security design: Reject presensi on error to prevent spoof bypass
         return {
-            "is_live": True,
-            "score": 1.0
+            "is_live": False,
+            "score": 0.0,
+            "error": "liveness_check_error"
         }
