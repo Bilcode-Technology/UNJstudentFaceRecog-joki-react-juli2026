@@ -11,12 +11,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-unj-teal border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-slate-500 font-medium">Memeriksa status sesi...</span>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

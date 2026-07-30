@@ -35,9 +35,10 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      style={{ colorScheme: 'light' }}
       className={`${plusJakartaSans.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-body bg-canvas text-ink">
+      <body className="min-h-full flex flex-col font-body bg-slate-100 text-slate-900">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

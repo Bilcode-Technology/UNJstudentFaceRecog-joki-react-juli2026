@@ -9,7 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   const [form, setForm] = useState({
     name: '',
@@ -141,6 +147,17 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-unj-teal border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-slate-500 font-medium">Memeriksa status sesi...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-canvas flex items-center justify-center p-4 py-8">

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Override dark mode: only activate when .dark class is explicitly added to html.
+   Since we never add .dark, the app always renders in light mode regardless of OS preference. */
+@custom-variant dark (&:is(.dark *));
+
+
 @theme {
   --color-unj-teal: #00595C;
   --color-unj-teal-dark: #00393B;
