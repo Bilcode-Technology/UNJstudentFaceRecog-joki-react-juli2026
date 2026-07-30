@@ -14,11 +14,16 @@ def get_onnx_session():
     global _onnx_session
     if _onnx_session is None and os.path.exists(MODEL_PATH):
         try:
-            # Set ONNX Runtime CPU provider options
             opts = ort.SessionOptions()
             opts.intra_op_num_threads = 2
             opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
             _onnx_session = ort.InferenceSession(MODEL_PATH, opts, providers=["CPUExecutionProvider"])
+            
+            inputs = _onnx_session.get_inputs()[0]
+            outputs = _onnx_session.get_outputs()[0]
+            print(f"[AntiSpoof] ONNX model loaded successfully from {MODEL_PATH}")
+            print(f"[AntiSpoof] Input: name='{inputs.name}', shape={inputs.shape}, type={inputs.type}")
+            print(f"[AntiSpoof] Output: name='{outputs.name}', shape={outputs.shape}, type={outputs.type}")
         except Exception as e:
             print(f"[AntiSpoof] Warning: Failed to load ONNX model {MODEL_PATH}: {e}")
             _onnx_session = None
@@ -92,27 +97,28 @@ def analyze_texture_liveness(crop_rgb: np.ndarray) -> float:
         val_std = float(np.std(v_channel))
 
         # Heuristic scoring calibration
-        score = 0.85 # Baseline
+        score = 0.85 # Baseline for natural camera RGB crop
 
-        # Penalty for low Laplacian variance (blurry print/re-capture)
-        if lap_var < 50.0:
+        # 1. Penalty for low Laplacian variance (blurry print/re-capture)
+        if lap_var < 40.0:
             score -= 0.35
-        elif lap_var < 100.0:
+        elif lap_var < 90.0:
             score -= 0.15
 
-        # Penalty for suspicious high frequency Moiré grid artifacts
-        if high_freq_ratio > 1.85:
-            score -= 0.30
-        elif high_freq_ratio > 1.65:
-            score -= 0.15
+        # 2. Penalty for suspicious high frequency Moiré grid artifacts (screen subpixel replay)
+        if high_freq_ratio > 1.35:
+            score -= 0.35
+        elif high_freq_ratio > 1.15:
+            score -= 0.20
 
-        # Penalty for flattened saturation (digital screen display reflection)
-        if sat_std < 15.0 or val_std < 18.0:
-            score -= 0.25
+        # 3. Penalty for flattened saturation (digital screen display reflection / print out)
+        if sat_std < 12.0:
+            score -= 0.35
 
         score = max(0.0, min(1.0, score))
         return score
-    except Exception:
+    except Exception as e:
+        print(f"[AntiSpoof] Exception in texture analysis: {e}")
         return 0.5
 
 
@@ -150,8 +156,10 @@ def check_liveness_from_crop(image_np: np.ndarray, face_location: Tuple[int, int
             
             # MiniFASNet outputs [fake_prob, real_prob]
             real_score = float(probs[1]) if len(probs) > 1 else float(probs[0])
+            print(f"[AntiSpoof] ONNX session.run() executed -> Raw logits: {raw_scores}, Softmax probs: {probs.round(4)}, Real Score: {real_score:.4f}")
         else:
             # Fallback to texture & frequency analysis classifier
+            print("[AntiSpoof] ONNX model unavailable -> Executing texture/frequency fallback classifier")
             real_score = analyze_texture_liveness(crop_rgb)
 
         is_live = real_score >= threshold
