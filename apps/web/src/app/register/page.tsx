@@ -286,7 +286,7 @@ export default function RegisterPage() {
                       <Button type="button" variant="secondary" onClick={startCamera} className="flex-1">
                         📷 Buka Kamera
                       </Button>
-                      <label className="flex-1">
+                      {/* <label className="flex-1">
                         <Button type="button" variant="ghost" className="w-full border border-line" onClick={() => document.getElementById('file-upload-input')?.click()}>
                           📁 Unggah File
                         </Button>
@@ -297,7 +297,7 @@ export default function RegisterPage() {
                           onChange={handleFileUpload}
                           className="hidden"
                         />
-                      </label>
+                      </label> */}
                     </div>
                   )}
                 </div>
